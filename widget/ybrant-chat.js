@@ -66,6 +66,23 @@
     return isNaN(v) ? 5 : v;
   })();
 
+  // Above the backend's own call budget (timeout + bounded retries + guard
+  // processing) so a legitimately-slow real answer isn't cut off, but bounded so
+  // a hung connection can't leave the composer disabled indefinitely.
+  var REQUEST_TIMEOUT_MS = 45000;
+
+  function fetchWithTimeout(url, opts) {
+    var controller = new AbortController();
+    var timer = setTimeout(function () {
+      controller.abort();
+    }, REQUEST_TIMEOUT_MS);
+    opts = opts || {};
+    opts.signal = controller.signal;
+    return fetch(url, opts).finally(function () {
+      clearTimeout(timer);
+    });
+  }
+
   var CSS = [
     ":host{all:initial}",
     "*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}",
@@ -157,6 +174,10 @@
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20.5 22 12 3 3.5V10l13 2-13 2z"/></svg>';
 
   function init() {
+    // Guard against the script tag being included twice on the same page
+    // (a plausible copy-paste mistake) — a second load must be a no-op, not a
+    // second independent launcher/panel.
+    if (document.getElementById("yb-chat-widget")) return;
     ensureFonts();
 
     var host = document.createElement("div");
@@ -472,7 +493,7 @@
     // ONLY if it fails before the first token (so the caller can safely fall
     // back without double-answering once content is already on screen).
     function streamChat(text, typing) {
-      return fetch(API_BASE + "/chat/stream", {
+      return fetchWithTimeout(API_BASE + "/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id: session, message: text })
@@ -545,7 +566,7 @@
     }
 
     function sendBuffered(text, typing) {
-      return fetch(API_BASE + "/chat", {
+      return fetchWithTimeout(API_BASE + "/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id: session, message: text })

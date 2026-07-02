@@ -294,7 +294,9 @@ cache is cleared.
   `OPENAI_VECTOR_STORE_ID` are both set. Route chat traffic only on a 200.
 - **Metrics** (`GET /api/metrics`, admin token) — in-process counters:
   chat_requests, cache hits/misses, guard_identity, guard_figure, daily_cap,
-  llm_errors, and a running mean LLM latency. Reset on restart.
+  llm_errors, a running mean LLM latency, total input/output tokens (the real
+  cost signal — what OpenAI bills), and today's quota usage
+  (`quota: {used, cap, date}`). Reset on restart.
 
 ### 11. The embeddable widget (`widget/ybrant-chat.js`)
 
@@ -512,6 +514,13 @@ Checklist before going live:
   counter, and metrics are in-process.
 - Ingest content from a workstation with the full `requirements.txt`; deploy the
   slim serve image.
+- **Mount `backend/data/` as a persistent volume.** Most PaaS containers reset
+  their filesystem on every redeploy; that directory holds the answer cache and
+  the `source_id → file_id` map (the only local state), and losing it just means
+  re-ingesting — but it's a silent trap if you don't expect it.
+- **Watch `documents` in `GET /api/health`** — it's the ingested-source count. If
+  it drops to 0 (a wiped volume, a bad ingest) the bot keeps responding, it just
+  degrades to "not found" on every question; monitoring this catches it early.
 
 ---
 

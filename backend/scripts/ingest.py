@@ -30,8 +30,9 @@ def main() -> None:
     # Make sure a vector store exists (creates + logs an id to pin in .env if unset).
     openai_store.ensure_vector_store()
 
+    failed: list[str] = []
     if args.site:
-        results = ingest_site()
+        results, failed = ingest_site()
     elif args.url:
         results = ingest_target(args.url)
     else:
@@ -46,6 +47,14 @@ def main() -> None:
 
     total = sum(r.chunks for r in results)
     print(f"\nIngested {len(results)} source(s), {total} file(s) uploaded.")
+
+    if failed:
+        # A partial ingest is easy to miss otherwise — print offenders and fail
+        # the run so a scheduled/manual re-ingest actually shows red.
+        print(f"\n{len(failed)} page(s) FAILED to ingest:")
+        for url in failed:
+            print(f"  - {url}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

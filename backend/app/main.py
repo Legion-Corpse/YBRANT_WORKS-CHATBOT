@@ -14,7 +14,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from app import metrics
+from app import metrics, quota
 from app.chat.service import answer, answer_stream
 from app.config import settings
 from app.ingestion import openai_store
@@ -61,6 +61,13 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 origins = [o.strip() for o in settings.cors_origins.split(",")]
+if "*" in origins:
+    # "*" is meant for local dev only (the file:// widget demo). Left in
+    # production, any site can embed the widget and spend the OpenAI budget.
+    logger.warning(
+        "CORS_ORIGINS is '*' — any site can call this API. Set it to the real "
+        "site origin(s) in production."
+    )
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -123,7 +130,7 @@ def ready(response: Response) -> ReadyResponse:
 def get_metrics(_: None = Depends(require_admin)) -> dict:
     # Admin-guarded: usage counters can leak traffic patterns, so reuse the
     # ingest admin token rather than exposing them publicly.
-    return metrics.snapshot()
+    return {**metrics.snapshot(), "quota": quota.snapshot()}
 
 
 @app.post("/api/chat", response_model=ChatResponse)

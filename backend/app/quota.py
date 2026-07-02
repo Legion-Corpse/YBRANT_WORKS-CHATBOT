@@ -37,6 +37,17 @@ def allow() -> bool:
         return True
 
 
+def snapshot() -> dict:
+    """Point-in-time view of today's usage, for /api/metrics — otherwise the
+    office only learns the cap was hit after the fact."""
+    with _lock:
+        return {
+            "used": _count,
+            "cap": settings.daily_request_cap,
+            "date": _day.isoformat() if _day else None,
+        }
+
+
 def reset() -> None:
     """Test helper / manual reset."""
     global _day, _count

@@ -37,8 +37,13 @@ def _load_map() -> dict[str, dict]:
 
 
 def _save_map(data: dict[str, dict]) -> None:
+    """Write via a temp file + atomic rename so a crash mid-write can never leave
+    a truncated/corrupt map — corruption here silently loses every citation's
+    title/URL and orphans vector-store files on the next re-ingest."""
     _MAP_PATH.parent.mkdir(parents=True, exist_ok=True)
-    _MAP_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    tmp_path = _MAP_PATH.with_suffix(".json.tmp")
+    tmp_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    tmp_path.replace(_MAP_PATH)
 
 
 # --- vector store ----------------------------------------------------------

@@ -44,18 +44,20 @@ class LLMResult:
     text: str
     citations: list[dict] = field(default_factory=list)
     context: str = ""
+    usage: dict | None = None
 
 
 @dataclass
 class StreamChunk:
     """One streaming event, normalized. Any field may be empty/None on a given
     chunk: `text` carries an incremental delta; `context` is set once the
-    file_search results arrive (before the text); `citations` is set at
+    file_search results arrive (before the text); `citations`/`usage` are set at
     completion."""
 
     text: str = ""
     context: str | None = None
     citations: list[dict] | None = None
+    usage: dict | None = None
 
 
 def _tools() -> list[dict]:
@@ -113,6 +115,18 @@ def _extract_context(response) -> str:
     return "\n\n".join(parts)
 
 
+def _extract_usage(response) -> dict | None:
+    """Token usage for cost tracking (what OpenAI actually bills), or None if the
+    response carries no usage block."""
+    usage = getattr(response, "usage", None)
+    if usage is None:
+        return None
+    return {
+        "input_tokens": getattr(usage, "input_tokens", 0) or 0,
+        "output_tokens": getattr(usage, "output_tokens", 0) or 0,
+    }
+
+
 class OpenAIClient:
     def _base_kwargs(self, instructions: str, user_input: str, conversation_id: str | None) -> dict:
         kwargs = {
@@ -138,6 +152,7 @@ class OpenAIClient:
             text=(getattr(response, "output_text", "") or "").strip(),
             citations=_extract_citations(response),
             context=_extract_context(response),
+            usage=_extract_usage(response),
         )
 
     def generate_stream(
@@ -167,6 +182,7 @@ class OpenAIClient:
                     yield StreamChunk(
                         citations=_extract_citations(response),
                         context=_extract_context(response) or None,
+                        usage=_extract_usage(response),
                     )
 
 

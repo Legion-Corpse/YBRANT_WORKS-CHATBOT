@@ -139,11 +139,15 @@ def answer(session_id: str, message: str) -> ChatResponse:
         logger.warning("Daily request cap reached; returning cap fallback")
         return _cap_response()
 
-    conversation_id = conversations.get_or_create(session_id)
     try:
+        conversation_id = conversations.get_or_create(session_id)
         started = time.monotonic()
         result = get_llm().generate(INSTRUCTIONS, prepared.message, conversation_id)
         metrics.observe_latency(time.monotonic() - started)
+        if result.usage:
+            metrics.observe_tokens(
+                result.usage.get("input_tokens", 0), result.usage.get("output_tokens", 0)
+            )
     except Exception:
         metrics.incr("llm_errors")
         logger.exception("OpenAI generation failed")
@@ -241,21 +245,26 @@ def answer_stream(session_id: str, message: str) -> Iterator[str]:
         yield from _emit_full(_cap_response())
         return
 
-    conversation_id = conversations.get_or_create(session_id)
     context_text = ""
     citations: list[dict] = []
     buffer = ""
     emitted = ""
     blocked = False
     recovered = None
+    conversation_id: str | None = None
 
     try:
+        conversation_id = conversations.get_or_create(session_id)
         started = time.monotonic()
         for chunk in get_llm().generate_stream(INSTRUCTIONS, prepared.message, conversation_id):
             if chunk.context:
                 context_text = chunk.context
             if chunk.citations is not None:
                 citations = chunk.citations
+            if chunk.usage:
+                metrics.observe_tokens(
+                    chunk.usage.get("input_tokens", 0), chunk.usage.get("output_tokens", 0)
+                )
             if chunk.text:
                 buffer += chunk.text
                 complete, buffer = _flush_sentences(buffer)
@@ -284,6 +293,11 @@ def answer_stream(session_id: str, message: str) -> Iterator[str]:
             return
         try:
             recovered = get_llm().generate(INSTRUCTIONS, prepared.message, conversation_id)
+            if recovered.usage:
+                metrics.observe_tokens(
+                    recovered.usage.get("input_tokens", 0),
+                    recovered.usage.get("output_tokens", 0),
+                )
         except Exception:
             logger.exception("Buffered fallback after stream failure failed")
             yield _sse("error", {"answer": ERROR_ANSWER})

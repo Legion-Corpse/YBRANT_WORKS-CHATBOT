@@ -83,16 +83,22 @@ def _with_metadata_overrides(
     ]
 
 
-def ingest_site(base_url: str | None = None) -> list[IngestResult]:
+def ingest_site(base_url: str | None = None) -> tuple[list[IngestResult], list[str]]:
+    """Crawl and ingest every sitemap URL. One bad page is logged and skipped
+    rather than aborting the whole crawl, but the failed URLs are returned
+    alongside the results so the caller (the CLI) can surface them instead of
+    a silently-successful run that actually missed content."""
     base = base_url or settings.site_base_url
     urls = WebLoader.discover_sitemap_urls(base)
     urls = [u for u in urls if not u.rstrip("/").endswith("/sitemap")]
     logger.info("Sitemap lists %d URLs", len(urls))
 
     results = []
+    failed: list[str] = []
     for url in urls:
         try:
             results.extend(ingest_target(url))
         except Exception:
             logger.exception("Failed to ingest %s", url)
-    return results
+            failed.append(url)
+    return results, failed
