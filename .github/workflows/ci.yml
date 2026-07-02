@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      # Full dev deps (runtime + pytest). The suite fakes the OpenAI client via
+      # tests/conftest.py, so no OPENAI_API_KEY is needed; tests never touch
+      # Playwright, so no Chromium download is needed.
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest tests -q

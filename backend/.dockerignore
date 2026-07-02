@@ -1,0 +1,14 @@
+# Never copy these into the build context / image.
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.hf_cache/
+
+# Secrets are injected at deploy time, not baked into the image.
+.env
+
+# Not needed at runtime (data/chroma is pre-baked separately).
+tests/
+scripts/
+*.md

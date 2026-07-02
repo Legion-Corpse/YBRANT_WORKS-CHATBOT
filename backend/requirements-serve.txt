@@ -1,0 +1,15 @@
+# Runtime-only dependencies for the DEPLOYED (serving) image.
+#
+# The vector store lives in OpenAI's cloud, so serving needs none of the
+# ingestion stack (requests/beautifulsoup4/trafilatura/defusedxml/playwright).
+# Ingestion is run offline from a workstation with the full requirements.txt
+# (scripts/ingest.py). The ingest HTTP endpoints import their deps lazily, so a
+# serve-only image boots fine and only those endpoints are unavailable.
+# Upper bounds pin the tested majors (see requirements.txt).
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.32,<1.0
+slowapi>=0.1.9,<0.2
+pydantic>=2.9,<3
+pydantic-settings>=2.6,<3
+openai>=2.0,<3
+python-multipart>=0.0.17,<0.1

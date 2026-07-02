@@ -1,0 +1,26 @@
+# secrets / env
+.env
+backend/.env
+*.env.local
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.hf_cache/
+
+# regenerable local cache (answer text; rebuilt at runtime)
+backend/data/answer_cache.json
+# NOTE: backend/data/openai_files.json (source_id -> OpenAI file id map) is
+# tracked ON PURPOSE — it's the only local state and holds no secrets. Losing it
+# means re-ingesting to rebuild citation URLs.
+
+# os / editor
+.DS_Store
+.claude
+
+# internal docs — not shipped (README is the only tracked .md)
+CLAUDE.md
+PRODUCT.md
+DESIGN.md
