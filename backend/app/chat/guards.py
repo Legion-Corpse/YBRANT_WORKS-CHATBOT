@@ -13,7 +13,7 @@ CURRENCY_FIGURE = re.compile(
 )
 
 # Spelled-out amounts paired with a currency word ("five thousand dollars",
-# "ten lakh rupees"). Low false-positive because the currency word is required.
+# "ten lakh rupees"). Low -falsepositive because the currency word is required.
 _NUM_WORD = (
     r"(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
     r"thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|"
