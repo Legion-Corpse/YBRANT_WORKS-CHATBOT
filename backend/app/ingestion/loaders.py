@@ -5,7 +5,6 @@ import logging
 import re
 import socket
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Protocol
 from urllib.parse import urlsplit
 from xml.etree.ElementTree import Element
@@ -215,56 +214,11 @@ class WebLoader:
         return urls
 
 
-class PDFLoader:
-    def can_load(self, target: str) -> bool:
-        return target.lower().endswith(".pdf") and Path(target).exists()
-
-    def load(self, target: str) -> list[Document]:
-        from pypdf import PdfReader
-
-        path = Path(target)
-        reader = PdfReader(path)
-        text = "\n\n".join(page.extract_text() or "" for page in reader.pages)
-        title = (reader.metadata.title if reader.metadata else None) or path.stem
-        return [
-            Document(
-                source_id=str(path.resolve()), title=title, url=path.name, text=text
-            )
-        ]
-
-
-class DocxLoader:
-    def can_load(self, target: str) -> bool:
-        return target.lower().endswith(".docx") and Path(target).exists()
-
-    def load(self, target: str) -> list[Document]:
-        import docx
-
-        path = Path(target)
-        doc = docx.Document(str(path))
-        text = "\n\n".join(p.text for p in doc.paragraphs if p.text.strip())
-        return [
-            Document(
-                source_id=str(path.resolve()), title=path.stem, url=path.name, text=text
-            )
-        ]
-
-
-class TextLoader:
-    def can_load(self, target: str) -> bool:
-        return target.lower().endswith((".txt", ".md")) and Path(target).exists()
-
-    def load(self, target: str) -> list[Document]:
-        path = Path(target)
-        text = path.read_text(encoding="utf-8", errors="replace")
-        return [
-            Document(
-                source_id=str(path.resolve()), title=path.stem, url=path.name, text=text
-            )
-        ]
-
-
-ALL_LOADERS: list[Loader] = [WebLoader(), PDFLoader(), DocxLoader(), TextLoader()]
+# Local files (PDF/DOCX/TXT) are uploaded to OpenAI as-is and parsed server-side
+# (see ingestion/pipeline.py's `raw_path` path) — there is no local file loader
+# for them. WebLoader is the only loader; find_loader still validates the target
+# and gives a clear error for anything else.
+ALL_LOADERS: list[Loader] = [WebLoader()]
 
 
 def find_loader(target: str) -> Loader:

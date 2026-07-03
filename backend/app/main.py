@@ -142,7 +142,7 @@ def chat(request: Request, req: ChatRequest) -> ChatResponse:
 @app.post("/api/chat/stream")
 @limiter.limit(settings.chat_rate_limit)
 def chat_stream(request: Request, req: ChatRequest) -> StreamingResponse:
-    # Server-Sent Events: tokens flow as Gemini generates them so the widget
+    # Server-Sent Events: tokens flow as the model generates them so the widget
     # renders the answer live instead of waiting for the full reply. The figure
     # guard runs per sentence inside answer_stream, so this is no less safe than
     # the buffered /api/chat path.

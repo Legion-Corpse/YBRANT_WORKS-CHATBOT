@@ -41,8 +41,6 @@ class Settings(BaseSettings):
     # also retries transient 429/5xx up to openai_max_retries with backoff.
     openai_timeout_seconds: float = 30.0
     openai_max_retries: int = 2
-    # purpose used when uploading files for file_search.
-    openai_file_purpose: str = "assistants"
 
     # --- Ingestion (web crawl feeds the OpenAI vector store) ----------------
     site_base_url: str = "https://www.ybrantworks.com"

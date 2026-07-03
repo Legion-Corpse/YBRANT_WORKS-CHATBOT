@@ -29,17 +29,19 @@ NAV_PAGES = [
 NO_MATCH_ANSWER = (
     "I couldn't find information about that in the YbrantWorks documents I can "
     "access. I can help with our services, company background, blogs, careers, or "
-    f"how to get in touch. You can also email us at {settings.contact_email}."
+    f"how to get in touch. You can also email us at {settings.contact_email} or "
+    f"call {settings.contact_phone}."
 )
 
 ERROR_ANSWER = (
     "Sorry, I'm having trouble answering right now. Please try again in a moment, "
-    f"or reach us directly at {settings.contact_email}."
+    f"or reach us directly at {settings.contact_email} or {settings.contact_phone}."
 )
 
 CAP_ANSWER = (
     "We've reached today's limit for automated answers. Please try again tomorrow, "
-    f"or reach us directly at {settings.contact_email} and the team will help."
+    f"or reach us directly at {settings.contact_email} or {settings.contact_phone} "
+    "and the team will help."
 )
 
 

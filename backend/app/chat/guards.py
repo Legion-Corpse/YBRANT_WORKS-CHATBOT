@@ -54,7 +54,8 @@ IDENTITY_INTENT = re.compile(
 IDENTITY_ANSWER = (
     "I'm the YbrantWorks website assistant. I answer questions about YbrantWorks "
     "using content from our website — ask me about our services, company, blogs, "
-    f"careers, or how to get in touch, or email {settings.contact_email}."
+    f"careers, or how to get in touch, or email {settings.contact_email} or call "
+    f"{settings.contact_phone}."
 )
 
 # Neutral replacement when the invented-figure guard fires. Pricing now flows
@@ -63,8 +64,9 @@ IDENTITY_ANSWER = (
 # fabricated figure (price or otherwise).
 NOT_IN_DOCS_ANSWER = (
     "I don't have that information in the documents I can access, so I can't give "
-    "you a reliable figure. Please reach out via our Contact page or email "
-    f"{settings.contact_email} and the team can help."
+    "you a reliable figure. Please reach out via our Contact page, email "
+    f"{settings.contact_email}, or call {settings.contact_phone} and the team can "
+    "help."
 )
 
 

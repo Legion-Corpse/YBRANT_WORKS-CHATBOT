@@ -3,12 +3,12 @@
 __pycache__/
 *.pyc
 .pytest_cache/
-.hf_cache/
 
 # Secrets are injected at deploy time, not baked into the image.
 .env
 
-# Not needed at runtime (data/chroma is pre-baked separately).
+# Not needed by the serving image: ingestion is run offline from a workstation
+# (scripts/ingest.py), and the vector store is hosted by OpenAI, not baked in.
 tests/
 scripts/
 *.md

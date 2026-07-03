@@ -280,9 +280,9 @@
     launcher.addEventListener("click", function () {
       setOpen(!open);
     });
-    panel.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && open) setOpen(false);
-    });
+    // The panel closes ONLY via the launcher/close button — no Escape-to-close,
+    // no click-outside, no idle timeout. A stray Escape (e.g. while typing, or a
+    // mobile keyboard's dismiss action) must not dismiss the whole conversation.
 
     function scrollDown() {
       log.scrollTop = log.scrollHeight;

@@ -5,7 +5,6 @@ from pydantic import BaseModel, Field, field_validator
 
 class Confidence(str, Enum):
     HIGH = "high"
-    MEDIUM = "medium"
     LOW = "low"
 
 
@@ -46,7 +45,7 @@ class IngestResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     documents: int  # distinct ingested sources
-    chunks: int  # embedded chunks across all sources
+    chunks: int  # same count as `documents` — OpenAI chunks server-side
 
 
 class ReadyResponse(BaseModel):

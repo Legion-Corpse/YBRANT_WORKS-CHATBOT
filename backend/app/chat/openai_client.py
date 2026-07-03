@@ -1,9 +1,9 @@
 """OpenAI Responses API client with hosted file_search retrieval.
 
-Replaces the old Gemini client. One `responses.create` call does both retrieval
-(the `file_search` tool over the configured vector store) and generation, so
-there is no local embed/rerank step. The conversation id (when present) lets
-OpenAI keep multi-turn context server-side.
+One `responses.create` call does both retrieval (the `file_search` tool over the
+configured vector store) and generation, so there is no local embed/rerank step.
+The conversation id (when present) lets OpenAI keep multi-turn context
+server-side.
 
 Returned to the service:
 - `text`     — the answer.

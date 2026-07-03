@@ -8,7 +8,6 @@ __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
-.hf_cache/
 
 # regenerable local cache (answer text; rebuilt at runtime)
 backend/data/answer_cache.json
